@@ -1,0 +1,16 @@
+#/bin/bash
+
+# create bin directory if it doesn't exist
+mkdir -p $HOME/bin
+
+# copy all executables to ~/bin/
+cp journal $HOME/bin/
+
+# make sure ~/bin is in the PATH
+found=false
+binPath=$HOME/bin
+echo $PATH | grep -q $binPath && found=true || echo "bin path not registered in PATH"
+
+if [[ $found == "false" ]]; then
+  echo "export PATH=\$PATH:$binPath" >> ~/.zshrc
+fi 

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+timestamp=$(date "+%Y-%m-%d_%H:%M")
+
+journal_dir="$HOME/.journal"
+
+mkdir -p $journal_dir
+
+entry_name="$journal_dir/$timestamp.txt"
+
+echo -e "$timestamp\n\n" > $entry_name
+
+vim $entry_name
+
+echo "Journal entry saved to $entry_name"
