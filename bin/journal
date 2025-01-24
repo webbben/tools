@@ -1,8 +1,88 @@
 #!/bin/bash
 
-timestamp=$(date "+%Y-%m-%d_%H:%M")
-
 journal_dir="$HOME/.journal"
+
+# if first arg is "lock" or "unlock", encrypt/decrypt all files in the journal directory
+# we will just use a simple dummy password that is hardcoded - if you go through the trouble of finding this script,
+# then you've earned it.
+
+if [ ! -z "$1" ]; then
+  if [ "$1" == "lock" ]; then
+    # get list of files that aren't locked (i.e. don't end in .enc)
+    unlocked_files=$(ls $journal_dir | grep -v ".enc")
+    if [ -z "$unlocked_files" ]; then
+      echo "All files are already locked"
+      exit 1
+    fi
+
+    # first, backup all files to a temp dir, just in case something went catastrophically wrong
+    cp -r $journal_dir ~/.journal_backup_temp
+
+    # encode all files using our silly password
+    for file in $unlocked_files; do
+      openssl aes-256-cbc -a -salt -pass pass:123 -in "$journal_dir/$file" -out "$journal_dir/$(basename $file .txt).enc"
+    done
+
+    # confirm the existence of new locked files
+    for file in $unlocked_files; do
+      if [ ! -f "$journal_dir/$(basename $file .txt).enc" ]; then
+        echo "Failed to lock $file"
+        echo "Please manually restore backed up files from ~/.journal_backup_temp"
+        exit 1
+      fi
+    done
+
+    # remove the original files
+    for file in $unlocked_files; do
+      rm "$journal_dir/$file"
+    done
+
+    # remove the backup
+    rm -rf ~/.journal_backup_temp
+
+    echo "Journal entries encrypted. To decrypt, run 'journal unlock'."
+    exit 0
+  fi
+
+  if [ "$1" == "unlock" ]; then
+    # get list of files that are locked (i.e. end in .enc)
+    locked_files=$(ls $journal_dir | grep ".enc")
+    if [ -z "$locked_files" ]; then
+      echo "All files are already unlocked"
+      exit 1
+    fi
+
+    # first, backup all files to a temp dir, just in case something went catastrophically wrong
+    cp -r $journal_dir ~/.journal_backup_temp
+
+    # decode all files using our silly password
+    for file in $locked_files; do
+      openssl aes-256-cbc -d -a -salt -pass pass:123 -in "$journal_dir/$file" -out "$journal_dir/$(basename $file .enc).txt"
+    done
+
+    # confirm the existence of new unlocked files
+    for file in $locked_files; do
+      if [ ! -f "$journal_dir/$(basename $file .enc).txt" ]; then
+        echo "Failed to unlock $file"
+        echo "Please manually restore backed up files from ~/.journal_backup_temp"
+        exit 1
+      fi
+    done
+
+    # remove the original files
+    for file in $locked_files; do
+      rm "$journal_dir/$file"
+    done
+
+    # remove the backup
+    rm -rf ~/.journal_backup_temp
+
+    echo "Journal entries decrypted. To encrypt, run 'journal lock'."
+    exit 0
+  fi
+fi
+
+timestamp=$(date "+%Y-%m-%d_%H:%M")
 
 mkdir -p $journal_dir
 
