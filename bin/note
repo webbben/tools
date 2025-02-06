@@ -1,0 +1,46 @@
+#!/bin/bash
+
+if [ -z $NOTE_PATH ]; then
+  NOTE_PATH=~/notes
+fi
+
+if [ ! -z "$1" ]; then
+  if [ "$1" == "list" ]; then  
+    find "$NOTE_PATH" -type d | sed "s|^$NOTE_PATH||"
+    exit 0
+  fi
+
+  if [ "$1" == "new" ]; then
+    new_note="$2"
+    if [ -z "$new_note" ]; then
+      read -p "enter path for new note (incl. note name, but no ext): " new_note
+    fi 
+    subdir=$(dirname "$new_note")
+    if [ ! -z "$subdir" ]; then
+      mkdir -p "$NOTE_PATH/$subdir"
+    fi
+    note_name=$(basename "$new_note")
+    nvim "$NOTE_PATH/$subdir/$note_name.md"
+    if [ -s "$NOTE_PATH/$subdir/$note_name.md" ]; then
+      echo "note created at $subdir/$note_name.md"
+    else
+      echo "note not created."
+    fi 
+    exit 0
+  fi
+
+  if [ "$1" == "find" ]; then
+    find_text="$2"
+    if [ -z "$find_text" ]; then
+      read -p "enter the text to search for: " find_text
+    fi 
+    grep --color=always -r "$find_text" $NOTE_PATH | sed "s|^$NOTE_PATH/||"
+    exit 0
+  fi 
+
+  echo "$0: command $2 not recognized"
+  exit 1
+fi 
+
+
+glow "$NOTE_PATH"
