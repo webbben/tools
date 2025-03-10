@@ -9,7 +9,7 @@ journal_dir="$HOME/.journal"
 if [ ! -z "$1" ]; then
   if [ "$1" == "lock" ]; then
     # get list of files that aren't locked (i.e. don't end in .enc)
-    unlocked_files=$(ls $journal_dir | grep -v ".enc")
+    unlocked_files=$(ls $journal_dir | grep -v ".enc" | grep -v "README")
     if [ -z "$unlocked_files" ]; then
       echo "All files are already locked"
       exit 1

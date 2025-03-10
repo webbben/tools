@@ -21,7 +21,9 @@ if [ ! -z "$1" ]; then
     fi
     note_name=$(basename "$new_note")
     nvim "$NOTE_PATH/$subdir/$note_name.md"
+
     if [ -s "$NOTE_PATH/$subdir/$note_name.md" ]; then
+      glow "$NOTE_PATH/$subdir/$note_name.md"
       echo "note created at $subdir/$note_name.md"
     else
       echo "note not created."
